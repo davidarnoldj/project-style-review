@@ -1,60 +1,59 @@
 # Project Style Review
 
-A reusable Agent Skill for reviewing source code, comments, documentation and user-facing text against a project's own conventions. Findings explain what a maintainer could improve, where it matters and the smallest useful change. Reviews are read-only by default.
+An Agent Skill for reviewing technical English, code structure, file layout and product text in context. It reports findings in chat by default and applies fixes only on request.
 
-## Install on macOS
+## Install
 
-Clone the private repository into a dedicated checkout using an authenticated GitHub account with access.
+Clone the public repository and run the installer with Python 3.9 or later.
 
 ```sh
-gh repo clone davidarnoldj/project-style-review "$HOME/Projects/project-style-review"
-cd "$HOME/Projects/project-style-review"
+git clone https://github.com/davidarnoldj/project-style-review.git
+cd project-style-review
 python3 -I -B install.py codex
 ```
 
-The installer links the canonical [skill directory](project-style-review) into `~/.agents/skills/project-style-review`. Running it again with the same checkout is safe. A different existing entry at the destination is preserved and reported. Pull updates into the checkout when you want them. New reviews use the installed directory. If Codex does not show the new skill, restart the client. [Codex skill discovery documentation](https://developers.openai.com/codex/skills/)
+The installer links the canonical [skill directory](project-style-review/) into `~/.agents/skills/project-style-review`. It preserves an existing entry from a different checkout. Pull updates into your checkout to update the installed skill. Restart Codex if the skill is missing from the selector. [Codex skill discovery](https://developers.openai.com/codex/skills/)
 
-For Claude Code, run `python3 -I -B install.py claude` from the same checkout. The link goes into `~/.claude/skills/project-style-review`. Invoke `/project-style-review` followed by your request. The same instructions and helper are used by both clients. [Claude Code skills documentation](https://code.claude.com/docs/en/skills)
+For Claude Code, run `python3 -I -B install.py claude`. The installer links the skill into `~/.claude/skills/project-style-review`. Use `/project-style-review` followed by the request. [Claude Code skills](https://code.claude.com/docs/en/skills)
+
+Other Agent Skills-compatible clients can install the complete `project-style-review/` directory in their documented skill location. Keep [`SKILL.md`](project-style-review/SKILL.md) and its bundled references and script together. [Agent Skills specification](https://agentskills.io/specification)
 
 ## Invoke from the project you want to review
 
-Start Codex in the desired folder. In the prompt, type `$` and select `project-style-review`, or use `/skills`. These prompts also work with `codex exec`.
-
-```text
-$project-style-review Review the ordinary local folder ".".
-$project-style-review Review the current Git changes.
-$project-style-review Prüfe nur die deutschsprachige Dokumentation und die deutschen UI-Texte.
-```
-
-For a noninteractive review of the current folder on either a Git or non-Git project, run:
+In Codex, type `$` and select `project-style-review`, or use `/skills`. For a noninteractive, read-only review, run one of these commands from the target folder.
 
 ```sh
-codex exec --sandbox read-only --ephemeral --skip-git-repo-check -C . '$project-style-review Review the ordinary local folder ".".'
+codex exec --sandbox read-only --ephemeral --skip-git-repo-check -C . \
+  '$project-style-review Review this ordinary folder. Give a complete read-only review.'
+
+codex exec --sandbox read-only --ephemeral --skip-git-repo-check -C . \
+  '$project-style-review Review the developer documentation and comments for technical English, and look for unnecessary file fragmentation.'
 ```
 
-On macOS with a working ChatGPT app bundle, its CLI can also be used by replacing `codex` with `"/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex"`.
+On macOS, the ChatGPT app also ships a CLI at `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex`. Quote that path when using it in place of `codex`.
 
-Additional examples:
+Other requests
 
-- `$project-style-review Review only scripts/import.py and docs/import.md. Report in Austrian Standard German.`
-- `$project-style-review Review the Git diff from release/2.8 to HEAD, plus current working-tree changes, under Sources/.`
+- `$project-style-review Review the current Git changes.`
+- `$project-style-review Prüfe nur die deutschsprachige Dokumentation und die deutschen UI-Texte.`
 - `$project-style-review Check only README.md and docs/setup.md for literal authoring leftovers.`
-- `$project-style-review Apply the two documentation fixes from your report and show the diff.` For a subsequent editing request, use a session with write access.
+- `$project-style-review Apply the two approved fixes from the report and show the diff.` Use a session with write access for the approved change.
 
-## Scope and limits
+## What the review checks
 
-- **Code and project text.** The helper discovers Python, SQL, Swift, Markdown, common configuration such as TOML, YAML, JSON, INI and XML, and localisation text such as Apple `.strings`, `.stringsdict`, `.xcstrings` and PO files. It reads UTF-8 and BOM-marked UTF-16. The agent reads source and text in context. There is no language parser, compiler, automated rewrite or authorship detector.
-- **Working trees and folders.** A review can cover a folder, a subdirectory or selected files. Git change review distinguishes staged, unstaged and nonignored untracked files. An optional named revision adds a direct comparison to HEAD. The helper applies Git's standard excludes in a worktree and local `.gitignore` and `.ignore` rules in ordinary folders. It skips symlinks, known credential locations, binaries, common output directories and recognised generated text. See [scope and coverage](project-style-review/references/scope.md) for ignore details, caps and encoding limits.
-- **Reports.** Results go to chat or stdout. The report uses the user's language and defaults to Austrian Standard German when unspecified. Quotes and suggested wording stay in the language of the file. A project may need sampling, and coverage belongs in the report.
-- **Local processing.** The optional helper uses Python 3.9+ standard library and local Git for worktrees. It neither executes project code nor downloads catalogues. It creates no project files. The coding client can still send prompts and selected file excerpts to its configured model provider and retain out-of-project session data according to its settings.
+- **Technical English.** Developer documentation and explanatory comments, including the canonical README and SQL comments, use precise English. An intentionally translated README, German product copy and exact literals keep their language. Review reports follow the user's language and default to Austrian Standard German. The review checks wording against local evidence and flags a missing explanation when a maintainer needs it to use or change the code safely.
+- **File layout.** The review traces consumers, imports, anchors and build or discovery references before suggesting a move. Consolidation findings name the source files, a cohesive destination and affected references. Package markers, ordered migrations, supported public paths and separate documentation audiences can justify small files.
+- **Project scope.** Review a folder, subdirectory, selected files or Git changes. Current Git changes include staged, unstaged and eligible untracked files. The helper discovers source such as Python, SQL and Swift, plus Markdown, configuration and localisation text. [Scope commands, exclusions and coverage limits](project-style-review/references/scope.md)
+- **Local processing.** The optional helper uses the Python standard library and local Git for worktrees. It reads text and prints to standard output. The client can send prompts and file excerpts to its configured provider and retain session data according to its settings.
 
 ## Tests and research
 
 ```sh
 python3 -B -m unittest discover -s tests -v
-python3 -B tests/live_review.py folder --codex "$(command -v codex)"
+python3 -B tests/live_review.py technical --codex "$(command -v codex)"
+python3 -B tests/live_review.py edit --codex "$(command -v codex)"
 ```
 
-The live runner uses isolated synthetic folders. It accepts `folder`, `git`, `german` or `delivery`. It prints the review and compares pre/post inventories, including hidden files, SHA-256 content hashes and symlink targets. Transcripts and inventories are stored beside the temporary targets. An authenticated Codex CLI is required for live runs. Use the runner’s `--user-config` option to include your normal Codex settings.
+The live runner also accepts `folder`, `git`, `german` and `delivery`. It uses isolated synthetic projects and stores output beside the targets. Read-only runs compare complete inventories, including hidden paths, SHA-256 file hashes and symlink targets. The edit run checks approved paths, links, protected files and behaviour. Live runs require an authenticated Codex CLI. Pass `--user-config` to use your Codex settings.
 
-See [validation results](TESTING.md) and [upstream research and licenses](RESEARCH.md).
+See [validation results](TESTING.md) and [upstream sources and licences](RESEARCH.md).

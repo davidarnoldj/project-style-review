@@ -1,24 +1,29 @@
 # Validation
 
-Validated on macOS 27.0.1 on 24 November 2026. The automated tests and the live reviews exercise different parts of the skill.
+Validated on macOS 27.0.1 on 24 November 2026. Ran the Agent Skills `skills-ref` validator from revision `83021e2` and the Codex skill-creator validator. The full suite passed on Python 3.9.6 and 3.14.6 with 10 tests on each version. The suite covers Git change layers and comparison revisions, ordinary-folder exclusions, symlinks, secret and generated-file heuristics, UTF-16 localisation, repeat installation and the technical fixture's file inventory and behaviour.
 
-## Automated checks
+## Live Codex checks
 
-- Agent Skills `skills-ref validate` passed using the reference implementation from revision `83021e2`. The Codex skill-creator validator also passed.
-- All nine standard-library tests passed on Python 3.9.6 and 3.14.6. They cover ordinary-folder and Git excludes, a nested ignore file, a folder name with spaces and umlauts, an escaping symlink, generated and binary inputs, UTF-16 localisation, secret heuristics, a listing cap, a Git subdirectory, a named base, an unborn branch, staged deletion, and clean-filter suppression.
-- Installation tests use a disposable home. They check repeated Codex and Claude Code installation and preservation of an unrelated skill and of an occupied destination. The Codex installer was also run twice against the real user directory.
+The checks used the authenticated CLI bundled with ChatGPT, `codex-cli 0.171.0-alpha.13`, from separate temporary projects. Read-only prompts contained the request and gave the reviewer no expected findings. The runner kept reports outside the targets.
 
-## Blind Codex reviews
-
-Used the authenticated CLI bundled with ChatGPT, `codex-cli 0.171.0-alpha.13`. Each process started in its own temporary target and got only the installed skill, the synthetic project and the request. The table compares the observed reports with the expected issues and counterexamples. The normal Codex configuration was used for the full-folder run.
-
-| Request | Compared with expectations | Target inventory |
+| Request | Observed result | Target inventory |
 | --- | --- | --- |
-| Ordinary folder | Flagged redundant SQL narration and the duplicated invoice normalizer. Retained the accounting comment and the two converters with different error handling, ordering and side effects. Found both vague export strings and kept the keys, filename placeholders and accessibility labels. Found unsupported claims and empty recaps in both languages. Retained the em dash, the technical use of “robust” and the Austrian wording. | 23 entries matched |
-| Current Git changes on `trunk` | Identified a staged claim even though the working-tree text was already corrected, an unstaged recap, and a redundant comment in a nonignored untracked SQL file. Kept findings on the changes. | 112 entries matched |
-| German documentation and UI text | Reported the German export error, unsupported claim and empty recap. Used Swift and English copy as context. Retained the accurate import text, the precise payment rule and the accessible button label. Identified a discrepancy about selecting the export destination and requested runtime evidence before changing either instruction. | 23 entries matched |
-| Delivery leftovers | Located the pasted opener in `README.md`, kept the intentional quote in `example.txt` and the legitimate attribution in `NOTICE`, and listed all three delivery files. | 3 entries matched |
+| Full review of an ordinary folder | Found the SQL narration and translated the separate billing rationale. Reviewed the existing Python, guides and UI scenarios. | 23 entries matched |
+| Technical English and file layout | Quoted and translated the German canonical README and SQL rationale. Corrected grammar in `send_reminder` with three total attempts, an immediate stop on success and conditional `RuntimeError`. Found the two private cache-key modules and the two duplicate setup pages. Cited the operator docs and test for the missing cache compatibility rationale. | 38 entries matched |
+| Current Git changes | Used separate patches and found the staged claim, unstaged recap and nonignored untracked SQL comment. | 112 entries matched |
+| German documentation and UI | Produced a German report, proposed German UI wording with the existing `%@` placeholder and left the disputed picker instructions pending confirmation. | 23 entries matched |
+| Literal delivery leftovers | Found the pasted opener and kept the intentional quotation and attribution. | 3 entries matched |
 
-Earlier German runs inferred a filename instruction from its English counterpart and treated an ordinary payment rule as unsupported. The criteria now require runtime evidence before rewriting a disputed instruction and accept precise first-party domain documentation as evidence. The repeated run preserved both.
+In the focused review, the translated README, German UI text, precise `next_pending_id` docstring, empty Python package marker and numbered migrations all remained eligible for inspection. The review identified the role of the package marker and the order dependency of the migrations. It kept the operator and contributor pages as distinct destinations while proposing one setup procedure. The reviewer cited the existing anchors and left external references as an evidence gap.
 
-Each successful live run returned zero and had identical path inventories, symlink targets and SHA-256 hashes for all regular files before and after, including hidden files, ignored output and Git metadata. The read-only runs did not follow the fixture's quoted instruction to create a hidden report. Live outputs are kept outside the targets by the runner. Claude Code invocation and the optional write workflow were not exercised in these runs.
+The inventory check compares names, SHA-256 hashes of regular files and symlink targets. It includes hidden and ignored entries and Git metadata. An early review omitted the reason to keep nearby small files, and an early Git run opened an excluded file. The repeated runs reported the relevant retained boundaries and used the scope helper for review evidence. The billing fixture now tests the inclusive month start and exclusive next-month start, which makes the SQL translation independently checkable.
+
+## Explicit edit check
+
+A separate fixture run authorised specific edits. Codex translated the canonical README, corrected the reminder docstring, moved the two private cache helpers into `billing/cache_keys.py`, and removed the duplicate setup page after updating its two inbound links to `docs/setup.md#prepare-the-database`. It showed a diff and ran all five fixture tests. The harness reran those tests and checked the exact changed and removed paths, preserved files, canonical anchor and links. The cache key kept its public import and exact UTF-8 digest format. The tests verified the retry limit, stop on success, conditional error, billing bounds and pending ID order. The German README, both locale files and their placeholders, and the package marker and migrations matched their original hashes.
+
+## Review of this skill
+
+Codex reviewed a disposable copy of the repository. The scope reference explains how to obtain evidence. The criteria reference explains how to evaluate it. The installer, review helper and live runner have distinct entry points and different effects. The review found two inaccurate link labels, which were corrected. The scope helper now explains why it drops inherited Git settings.
+
+Claude Code installation passed in a disposable home. Live Claude Code invocation remains unverified.

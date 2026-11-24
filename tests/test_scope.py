@@ -183,6 +183,23 @@ class ScopeTests(unittest.TestCase):
         self.assertEqual(inventory(self.root), before)
         self.assertFalse((self.root / ".filter-executed").exists())
 
+    def test_technical_fixture_scope_and_behaviour(self):
+        self.root = fixture(self.base, "technical")
+        before = inventory(self.root)
+        requested = ("README.md", "README.de.md", "de-AT.lproj/Localizable.strings",
+                     "billing/__init__.py", "billing/cache_keys.py", "sql/customer_billing.sql",
+                     "migrations/001_create_customers.sql", "migrations/002_add_suspensions.sql")
+        result = self.run_helper("--read", *requested)
+        records = {entry["path"]: entry["numbered_text"] for entry in result["files"]}
+        self.assertEqual(set(records), set(requested))
+        self.assertEqual(records["billing/__init__.py"], "")
+        self.assertIn("%@", records["de-AT.lproj/Localizable.strings"])
+        self.assertIn(":next_billing_month_start", records["sql/customer_billing.sql"])
+        result = subprocess.run([sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests"],
+                                cwd=self.root, capture_output=True, text=True, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(inventory(self.root), before)
+
     def test_install_is_idempotent_and_preserves_other_skills(self):
         fake_home = self.base / "test home"
         env = {**os.environ, "HOME": str(fake_home)}

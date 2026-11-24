@@ -58,6 +58,7 @@ GENERATED = re.compile(
 )
 GENERATED_NAME = re.compile(r"(?:[._-](?:generated|min|bundle)\.|_pb2\.py$|\.pb\.swift$)")
 LOCK_NAMES = {"package.resolved", "package-lock.json", "npm-shrinkwrap.json", "bun.lock"}
+# Keep inherited Git settings from redirecting discovery to another checkout or index.
 GIT_ENV = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
 GIT_ENV.update(GIT_OPTIONAL_LOCKS="0", GIT_NO_LAZY_FETCH="1", GIT_TERMINAL_PROMPT="0",
                GIT_LITERAL_PATHSPECS="1", LC_ALL="C")
